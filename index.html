@@ -3,71 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>海戰指令：旗艦版</title>
+    <title>海戰指令：全能版</title>
     <style>
         :root {
-            --bg-color: #f4ece1;     /* 奶茶色 */
-            --grid-bg: #ffffff;      
-            --border-color: #dcd0c0; /* 橡木色 */
-            --ship-color: #8b7355;   /* 原木色 */
-            --sunk-color: #3e3327;   /* 焦木色 */
-            --hit-color: #e67e22;    /* 爆炸橘 */
-            --accent: #a89078;
+            --bg: #f4ece1; --grid-bg: #ffffff; --border: #dcd0c0;
+            --ship: #8b7355; --sunk: #3e3327; --hit: #e67e22; --accent: #a89078;
         }
 
-        body { font-family: "PingFang TC", sans-serif; background: var(--bg-color); margin: 0; display: flex; flex-direction: column; align-items: center; color: #5d5c5c; user-select: none; }
-        #menu { display: flex; flex-direction: column; gap: 20px; margin-top: 80px; text-align: center; }
-        .btn { padding: 15px 40px; font-size: 18px; border: none; background: var(--ship-color); color: white; border-radius: 12px; cursor: pointer; box-shadow: 0 4px #6d5a42; }
-        .btn:active { transform: translateY(2px); box-shadow: 0 2px #6d5a42; }
-
-        #gameArea { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 450px; padding-bottom: 20px; }
-        .status-bar { width: 90%; background: #fff; padding: 10px; border-radius: 10px; margin: 10px 0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .board-label { width: 90%; font-size: 13px; font-weight: bold; margin: 8px 0 3px; color: var(--accent); display: flex; justify-content: space-between; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; color: #5d5c5c; }
         
-        .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px; width: 90vw; max-width: 380px; background: var(--border-color); border: 2px solid var(--border-color); border-radius: 6px; overflow: hidden; }
-        .cell { aspect-ratio: 1; background: var(--grid-bg); position: relative; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        /* 選單介面 */
+        #menu { display: flex; flex-direction: column; gap: 20px; margin-top: 60px; text-align: center; }
+        .btn { padding: 15px 40px; font-size: 18px; border: none; background: var(--ship); color: white; border-radius: 12px; cursor: pointer; box-shadow: 0 4px #6d5a42; }
         
-        .ship-part { width: 90%; height: 90%; display: flex; align-items: center; justify-content: center; }
-        .ship-part svg { width: 100%; height: 100%; fill: var(--ship-color); transition: fill 0.5s; }
+        /* 遊戲區域 */
+        #gameArea { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; padding: 10px; }
+        .status-bar { width: 100%; background: #fff; padding: 12px; border-radius: 12px; margin-bottom: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px; width: 90vw; max-width: 380px; background: var(--border); border: 2px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 5px; }
+        .cell { aspect-ratio: 1; background: var(--grid-bg); position: relative; display: flex; align-items: center; justify-content: center; }
         
-        .hit { background: #fff4e6 !important; }
+        /* SVG 船隻零件 */
+        .ship-part { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .ship-part svg { width: 90%; height: 90%; fill: var(--ship); }
+        .sunk svg { fill: var(--sunk) !important; }
+        .hit::after { content: '💥'; position: absolute; font-size: 20px; animation: boom 0.5s forwards; }
         .miss::after { content: ''; width: 6px; height: 6px; background: #ccc; border-radius: 50%; }
-        .sunk svg { fill: var(--sunk-color) !important; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
 
-        .boom { position: absolute; font-size: 20px; z-index: 10; animation: explode 0.5s ease-out forwards; pointer-events: none; }
-        @keyframes explode {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.5); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes boom { 0% { transform: scale(0); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
+        
+        .label { font-size: 12px; font-weight: bold; color: var(--accent); width: 100%; margin: 5px 0; }
         #myBoard .cell { background: #fcfaf2; }
+        .progress-highlight { color: var(--hit); font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="menu">
-        <h1 style="margin-bottom:0;">海戰指令</h1>
-        <p style="margin-top:5px; color:var(--accent);">與老婆的外出對戰版</p>
-        <button class="btn" onclick="initGame('online')">連線對戰 (Wi-Fi/5G)</button>
-        <button class="btn" style="background:#d2b48c;" onclick="initGame('vs_computer')">單機挑戰電腦</button>
+        <h1>海戰指令 v3</h1>
+        <button class="btn" onclick="initGame('online')">連線對戰 (WiFi/5G)</button>
+        <button class="btn" style="background:#d2b48c;" onclick="initGame('vs_computer')">單機對戰電腦</button>
     </div>
 
     <div id="gameArea">
         <div class="status-bar">
             <b id="status">準備佈署艦隊</b><br>
-            <small id="instruction">請在下方「我方陣地」放置船隻</small>
+            <span id="instruction">請在「我方陣地」依序放置船隻</span>
         </div>
-        <div class="board-label"><span>敵方海域 (RADAR)</span><span id="enemy-stat">剩餘船隻: 5</span></div>
+        <div class="label">敵方海域 (RADAR)</div>
         <div class="grid" id="enemyBoard"></div>
-        <div class="board-label"><span>我方陣地 (HOME)</span><span id="my-stat">狀態: 正常</span></div>
+        <div class="label">我方陣地 (HOME)</div>
         <div class="grid" id="myBoard"></div>
-        <button style="margin-top:20px; color:#aaa; background:none; border:none;" onclick="location.reload()">回主選單</button>
+        <button style="margin-top:15px; background:none; border:none; color:#999;" onclick="location.reload()">放棄並返回</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const fleetSchema = [4, 3, 2, 2, 1]; 
+        const fleetSchema = [4, 3, 2, 2, 1];
         let currentShipIdx = 0, gameMode = '', myFleet = [], computerFleet = [], isReady = false, myTurn = false, tempP = [];
 
         const SVGS = {
@@ -83,71 +75,104 @@
             document.getElementById('gameArea').style.display = 'flex';
             const eb = document.getElementById('enemyBoard'), mb = document.getElementById('myBoard');
             for (let i = 0; i < 100; i++) {
-                const eCell = document.createElement('div'); eCell.className = 'cell'; eCell.id = `enemy-${i}`;
-                eCell.onclick = () => attack(i); eb.appendChild(eCell);
-                const mCell = document.createElement('div'); mCell.className = 'cell'; mCell.id = `my-${i}`;
-                mCell.onclick = () => deploy(i); mb.appendChild(mCell);
+                const e = document.createElement('div'); e.className = 'cell'; e.id = `enemy-${i}`; e.onclick = () => attack(i); eb.appendChild(e);
+                const m = document.createElement('div'); m.className = 'cell'; m.id = `my-${i}`; m.onclick = () => deploy(i); mb.appendChild(m);
             }
             if(mode === 'vs_computer') setupComputer();
+            updateInstruction();
         }
 
+        // --- 核心：佈署邏輯 ---
         function deploy(i) {
             if (isReady) return;
-            const targetLen = fleetSchema[currentShipIdx];
+            const target = fleetSchema[currentShipIdx];
+
+            // 取消選取
+            if (tempP.includes(i)) {
+                tempP = tempP.filter(x => x !== i);
+                renderTempFleet(); return;
+            }
+
+            // 連接檢查
             if (tempP.length > 0) {
                 const last = tempP[tempP.length - 1];
-                if (Math.abs(i - last) !== 1 && Math.abs(i - last) !== 10) return;
+                const diff = Math.abs(i - last);
+                if (diff !== 1 && diff !== 10) return;
+                if (diff === 1 && Math.floor(i / 10) !== Math.floor(last / 10)) return;
             }
-            if (!tempP.includes(i)) {
-                tempP.push(i);
-                const cell = document.getElementById(`my-${i}`);
-                let asset = (targetLen === 1) ? SVGS.single : (tempP.length === 1 ? SVGS.head : (tempP.length === targetLen ? SVGS.tail : SVGS.body));
-                cell.innerHTML = `<div class="ship-part">${asset}</div>`;
-            }
-            if (tempP.length === targetLen) {
-                myFleet.push({ cells: [...tempP], hits: 0, sunk: false });
+
+            tempP.push(i);
+            renderTempFleet();
+
+            if (tempP.length === target) {
+                myFleet.push({ cells: [...tempP], hits: 0, sunk: false, len: target });
                 tempP = []; currentShipIdx++;
-                if (currentShipIdx < fleetSchema.length) document.getElementById('instruction').innerText = `請放置 ${fleetSchema[currentShipIdx]} 格船`;
-                else {
-                    isReady = true; document.getElementById('status').innerText = "艦隊就緒";
-                    if(gameMode === 'online') socket.emit('ready', { fleet: myFleet });
-                    else { myTurn = true; document.getElementById('status').innerText = "你的回合"; }
+                if (currentShipIdx === fleetSchema.length) {
+                    isReady = true; document.getElementById('status').innerText = "✅ 艦隊就緒";
+                    if(gameMode === 'online') socket.emit('ready', { fleet: myFleet }); else myTurn = true;
                 }
             }
+            updateInstruction();
         }
 
+        function renderTempFleet() {
+            // 先清除當前正在放置的視覺
+            myFleet.forEach(s => s.cells.forEach(c => {})); // 已放好的不動
+            tempP.forEach(idx => document.getElementById(`my-${idx}`).innerHTML = ''); // 清除暫存
+
+            // 重新繪製
+            const target = fleetSchema[currentShipIdx];
+            let isVertical = tempP.length >= 2 ? Math.abs(tempP[1] - tempP[0]) === 10 : false;
+            const rot = isVertical ? "rotate(90deg)" : "rotate(0deg)";
+
+            tempP.forEach((idx, step) => {
+                let asset = SVGS.body;
+                if (target === 1) asset = SVGS.single;
+                else if (step === 0) asset = SVGS.head;
+                else if (step === target - 1) asset = SVGS.tail;
+                document.getElementById(`my-${idx}`).innerHTML = `<div class="ship-part" style="transform:${rot}">${asset}</div>`;
+            });
+        }
+
+        function updateInstruction() {
+            if (isReady) { document.getElementById('instruction').innerText = "等待對手準備中..."; return; }
+            const target = fleetSchema[currentShipIdx];
+            document.getElementById('instruction').innerHTML = `請放置 <b class="progress-highlight">${target}格船</b> (已放: ${tempP.length}/${target})`;
+        }
+
+        // --- 核心：對戰邏輯 ---
         function attack(i) {
             if (!isReady || !myTurn) return;
             const cell = document.getElementById(`enemy-${i}`);
             if (cell.dataset.attacked) return;
             cell.dataset.attacked = "true";
+
             if (gameMode === 'vs_computer') {
-                const ship = computerFleet.find(s => s.cells.includes(i));
-                processResult('enemy', i, ship);
-                myTurn = false; setTimeout(computerAI, 800);
+                const s = computerFleet.find(x => x.cells.includes(i));
+                processHit('enemy', i, s);
+                myTurn = false; setTimeout(computerAction, 800);
             } else { socket.emit('attack', { index: i }); myTurn = false; }
         }
 
-        function processResult(prefix, index, ship) {
+        function processHit(prefix, index, ship) {
             const cell = document.getElementById(`${prefix}-${index}`);
             if (ship) {
-                cell.classList.add('hit'); cell.innerHTML += `<span class="boom">💥</span>`;
-                ship.hits++;
+                cell.classList.add('hit'); ship.hits++;
                 if (ship.hits === ship.cells.length) {
                     ship.sunk = true; ship.cells.forEach(c => document.getElementById(`${prefix}-${c}`).classList.add('sunk'));
-                    if (checkWin(prefix === 'enemy' ? computerFleet : myFleet)) { alert(prefix === 'enemy' ? "你贏了！" : "你輸了！"); location.reload(); }
+                    if (checkWin(prefix === 'enemy' ? computerFleet : myFleet)) { alert(prefix === 'enemy' ? "贏了！" : "輸了！"); location.reload(); }
                 }
-            } else { cell.classList.add('miss'); }
+            } else cell.classList.add('miss');
         }
 
-        function computerAI() {
-            let t; do { t = Math.floor(Math.random() * 100); } while (document.getElementById(`my-${t}`).dataset.attacked);
+        function computerAction() {
+            let t; do { t = Math.floor(Math.random()*100); } while (document.getElementById(`my-${t}`).dataset.attacked);
             document.getElementById(`my-${t}`).dataset.attacked = "true";
-            processResult('my', t, myFleet.find(s => s.cells.includes(t)));
+            processHit('my', t, myFleet.find(s => s.cells.includes(t)));
             myTurn = true;
         }
 
-        function checkWin(fleet) { return fleet.every(s => s.sunk); }
+        function checkWin(f) { return f.every(s => s.sunk); }
 
         function setupComputer() {
             fleetSchema.forEach(len => {
@@ -155,39 +180,31 @@
                 while(!ok) {
                     let s = Math.floor(Math.random()*100), v = Math.random()>0.5, c = [];
                     for(let i=0; i<len; i++) {
-                        let next = v ? s+i*10 : s+i;
-                        if(next >= 100 || (!v && Math.floor(next/10) !== Math.floor(s/10))) { c=[]; break; }
-                        c.push(next);
+                        let n = v ? s+i*10 : s+i;
+                        if(n >= 100 || (!v && Math.floor(n/10) !== Math.floor(s/10))) { c=[]; break; }
+                        c.push(n);
                     }
-                    if(c.length > 0 && c.every(x => !computerFleet.some(ship => ship.cells.includes(x)))) {
+                    if(c.length && c.every(x => !computerFleet.some(ship => ship.cells.includes(x)))) {
                         computerFleet.push({cells:c, hits:0, sunk:false}); ok = true;
                     }
                 }
             });
         }
 
-        socket.on('gameStart', (firstId) => {
-            myTurn = (socket.id === firstId);
-            document.getElementById('status').innerText = myTurn ? "你的回合" : "對手回合";
+        // --- Socket 事件 ---
+        socket.on('gameStart', (id) => { myTurn = (socket.id === id); document.getElementById('status').innerText = myTurn ? "你的回合" : "對手回合"; });
+        socket.on('opp-attack', (d) => {
+            const s = myFleet.find(x => x.cells.includes(d.index));
+            processHit('my', d.index, s);
+            socket.emit('result', { index: d.index, isHit: !!s, isSunk: s?.sunk, shipCells: s?.cells });
+            myTurn = true; document.getElementById('status').innerText = "你的回合";
         });
-
-        socket.on('opp-attack', (data) => {
-            const ship = myFleet.find(s => s.cells.includes(data.index));
-            processResult('my', data.index, ship);
-            socket.emit('result', { index: data.index, isHit: !!ship, isSunk: ship?.sunk, shipCells: ship?.cells });
-            myTurn = true;
-            document.getElementById('status').innerText = "你的回合";
-        });
-
-        socket.on('attack-result', (data) => {
-            const cell = document.getElementById(`enemy-${data.index}`);
-            if (data.isHit) {
-                cell.classList.add('hit'); cell.innerHTML += `<span class="boom">💥</span>`;
-                if (data.isSunk) {
-                    data.shipCells.forEach(c => document.getElementById(`enemy-${c}`).classList.add('sunk'));
-                    alert("擊沈對方船隻！");
-                }
-            } else cell.classList.add('miss');
+        socket.on('attack-result', (d) => {
+            const c = document.getElementById(`enemy-${d.index}`);
+            if (d.isHit) {
+                c.classList.add('hit');
+                if (d.isSunk) { d.shipCells.forEach(idx => document.getElementById(`enemy-${idx}`).classList.add('sunk')); alert("擊沈！"); }
+            } else c.classList.add('miss');
         });
     </script>
 </body>
